@@ -1,0 +1,65 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Nancy Mongo Demo Page</title>
+    <link type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.10/themes/humanity/jquery-ui.css" rel="stylesheet" />
+</head>
+<body>
+    <h1>Nancy Message Demo</h1>
+    <p>
+        A demo page for using Nancy + MongoDb + AppHarbor. See <a href="http://csainty.blogspot.com">here</a>
+    </p>
+    <h2>Messages</h2>
+    <ul data-bind="foreach: messages">
+        <li data-bind="text: Content"></li>
+    </ul>
+    <h2>New Message</h2>
+    <p>
+        Enter your message and hit submit. The message will be saved in MongoDb on the server and redisplayed.
+    </p>
+    <p>
+        <input type="text" data-bind="value: messageText" />
+        <button data-bind="click: sendMessage">Submit</button>
+    </p>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js" type="text/javascript"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js" type="text/javascript"></script>
+    <script src="/Scripts/knockout-1.3.0beta.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        var viewModel = {
+            messages: ko.observableArray([]),
+            messageText: ko.observable(''),
+            sendMessage: function () {
+                $.ajax({
+                    url: '/api/messages',
+                    data: { message: this.messageText() },
+                    type: 'POST',
+                    success: function (result) {
+                        viewModel.messages.push({ Content: viewModel.messageText() });
+                        viewModel.messageText('');
+                    }
+                });
+            }
+        };
+        ko.applyBindings(viewModel);
+
+        $(function () {
+            $('button').button();
+            getMessages();
+        });
+
+        function getMessages() {
+            $.ajax({
+                url: '/api/messages',
+                dataType: 'json',
+                cache: false,
+                type: 'GET',
+                success: function (result) {
+                    for (var i = 0; i < result.length; i++) {
+                        viewModel.messages.push(result[i]);
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
